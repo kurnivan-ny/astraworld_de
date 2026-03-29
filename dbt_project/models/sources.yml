@@ -1,0 +1,57 @@
+version: 2
+
+sources:
+  - name: bronze
+    schema: astraworld_dw
+    description: "Bronze layer – raw tables loaded by Sling & generate script"
+    tables:
+      - name: customers_raw
+        description: "Raw customer data (DOB format campur, company names mixed)"
+        columns:
+          - name: id
+            tests:
+              - not_null
+              - unique
+          - name: name
+            tests:
+              - not_null
+
+      - name: sales_raw
+        description: "Raw sales (price as string with dot thousand separator)"
+        columns:
+          - name: vin
+            tests:
+              - not_null
+          - name: price
+            tests:
+              - not_null
+          - name: customer_id
+            tests:
+              - not_null
+
+      - name: after_sales_raw
+        description: "Raw after-sales service records"
+        columns:
+          - name: service_ticket
+            tests:
+              - not_null
+              - unique
+          - name: service_type
+            tests:
+              - not_null
+              - accepted_values:
+                  values: ["BP", "PM", "GR"]
+
+      - name: customer_addresses_raw
+        description: "Raw customer addresses – ingested daily via Sling CSV"
+        columns:
+          - name: id
+            tests:
+              - not_null
+              - unique
+          - name: customer_id
+            tests:
+              - not_null
+          - name: city
+            tests:
+              - not_null

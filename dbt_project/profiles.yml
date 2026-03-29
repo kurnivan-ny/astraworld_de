@@ -1,0 +1,11 @@
+astraworld:
+  target: dev
+  outputs:
+    dev:
+      type: mysql
+      host:     "{{ env_var('MYSQL_HOST', 'localhost') }}"
+      port:     "{{ env_var('MYSQL_PORT', '3306') | int }}"
+      username: "{{ env_var('MYSQL_USER', 'de_user') }}"
+      password: "{{ env_var('MYSQL_PASS', 'de_pass') }}"
+      schema:   astraworld_dw
+      threads:  4

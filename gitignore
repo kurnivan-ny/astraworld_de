@@ -1,0 +1,119 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Python
+# ─────────────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.Python
+pip-wheel-metadata/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# ─────────────────────────────────────────────────────────────────────────────
+# dbt
+# ─────────────────────────────────────────────────────────────────────────────
+
+# dbt build artifacts — fully regenerated on every run
+dbt_project/target/
+dbt_project/logs/
+
+# dbt installed packages — restored via `dbt deps`
+dbt_project/dbt_packages/
+
+# dbt per-user state (local only, never shared)
+dbt_project/.user.yml
+
+# ─────────────────────────────────────────────────────────────────────────────
+# dbt packages at the project root (if using root-level deps)
+# ─────────────────────────────────────────────────────────────────────────────
+dbt_packages/
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Dagster
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Dagster local run storage — all regenerated at runtime
+dagster_home/storage/
+dagster_home/logs/
+dagster_home/schedules/
+dagster_home/compute_logs/
+dagster_home/history/
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Environment & secrets
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Never commit real credentials; use .env.example to share variable names
+.env
+.env.*
+!.env.example
+
+# dbt profiles with connection credentials
+dbt_project/profiles.yml
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Data files
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Generated dummy/sample data — recreated by generate_dummy_data.py
+data/dummy/
+
+# Large or sensitive data files
+*.csv
+*.parquet
+*.json.gz
+*.jsonl
+
+# Keep schema and seed files that belong in source control
+!dbt_project/seeds/**/*.csv
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Docker
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Docker volume data mounted locally
+docker/volumes/
+docker/data/
+mysql-data/
+
+# ─────────────────────────────────────────────────────────────────────────────
+# IDEs & editors
+# ─────────────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ─────────────────────────────────────────────────────────────────────────────
+# OS
+# ─────────────────────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Misc
+# ─────────────────────────────────────────────────────────────────────────────
+*.log
+*.tmp
+*.bak
+*.orig
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/

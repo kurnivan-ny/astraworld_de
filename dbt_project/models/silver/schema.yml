@@ -1,0 +1,119 @@
+version: 2
+
+models:
+  # ── stg_customers ────────────────────────────────────────────────────────────
+  - name: stg_customers
+    description: >
+      Silver – customers bersih. DOB di-parse dari berbagai format ke DATE,
+      sentinel 1900-01-01 di-null-kan, dan nama perusahaan (PT/CV/UD) diberi
+      flag is_company=1 dengan dob=NULL.
+    columns:
+      - name: id
+        description: "Customer ID (PK)"
+        tests:
+          - not_null
+          - unique
+      - name: name
+        tests:
+          - not_null
+      - name: dob
+        description: "Parsed DOB (NULL untuk perusahaan atau sentinel 1900-01-01)"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: "'1900-01-02'"
+              max_value: "'2025-12-31'"
+              row_condition: "dob IS NOT NULL"
+              config:
+                severity: warn
+      - name: is_company
+        tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
+      - name: created_at
+        tests:
+          - not_null
+
+  # ── stg_sales ────────────────────────────────────────────────────────────────
+  - name: stg_sales
+    description: >
+      Silver – sales bersih. Price di-parse dari format string ribuan (350.000.000)
+      ke UNSIGNED BIGINT. Duplikat VIN dibuang, simpan record paling awal.
+    columns:
+      - name: vin
+        description: "Vehicle Identification Number (PK)"
+        tests:
+          - not_null
+          - unique
+      - name: customer_id
+        tests:
+          - not_null
+      - name: model
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["RAIZA", "RANGGO", "INNAVO", "VELOS", "ALTROS", "GRAN MAX"]
+      - name: invoice_date
+        tests:
+          - not_null
+      - name: price
+        description: "Harga dalam rupiah (sudah di-strip titik ribuan)"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+              max_value: 5000000000
+
+  # ── stg_after_sales ──────────────────────────────────────────────────────────
+  - name: stg_after_sales
+    description: >
+      Silver – after-sales bersih. service_date di-parse ke DATE,
+      VIN yang tidak ada di sales_raw di-flag is_orphan_vin=1.
+    columns:
+      - name: service_ticket
+        description: "Nomor tiket servis (PK)"
+        tests:
+          - not_null
+          - unique
+      - name: vin
+        tests:
+          - not_null
+      - name: service_date
+        tests:
+          - not_null
+      - name: service_type
+        description: "BP=Body Paint, PM=Periodic Maintenance, GR=General Repair"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["BP", "PM", "GR"]
+      - name: is_orphan_vin
+        description: "1 jika VIN tidak ditemukan di sales_raw"
+        tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
+
+  # ── stg_customer_addresses ──────────────────────────────────────────────────
+  - name: stg_customer_addresses
+    description: >
+      Silver – alamat bersih. city/province di-title-case, deduped per customer_id
+      simpan alamat terbaru (latest created_at).
+    columns:
+      - name: customer_id
+        description: "Satu baris per customer (deduped, PK efektif)"
+        tests:
+          - not_null
+          - unique
+      - name: city
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_value_lengths_to_be_between:
+              min_value: 2
+              max_value: 100
+      - name: province
+        tests:
+          - not_null
+      - name: address
+        tests:
+          - not_null

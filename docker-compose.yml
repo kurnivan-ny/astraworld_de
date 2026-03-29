@@ -1,0 +1,64 @@
+version: "3.9"
+
+services:
+  # ── Single MySQL instance ────────────────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: astraworld_mysql
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: de_user
+      MYSQL_PASSWORD: de_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Dagster Webserver ────────────────────────────────────────────────────────
+  dagster_webserver:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dagster
+    container_name: astraworld_webserver
+    command: dagster-webserver -h 0.0.0.0 -p 3000 -w /opt/dagster/app/workspace.yaml
+    environment:
+      DBT_TARGET: dev
+    ports:
+      - "3000:3000"
+    env_file: .env
+    volumes:
+      - ./:/opt/dagster/app
+      - dagster_home:/opt/dagster/dagster_home
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # ── Dagster Daemon (schedules & sensors) ─────────────────────────────────────
+  # Daemon tidak perlu dbt deps/compile – entrypoint.sh deteksi "dagster-daemon"
+  # dan langsung exec tanpa step dbt
+  dagster_daemon:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dagster
+    container_name: astraworld_daemon
+    command: dagster-daemon run
+    env_file: .env
+    volumes:
+      - ./:/opt/dagster/app
+      - dagster_home:/opt/dagster/dagster_home
+    depends_on:
+      mysql:
+        condition: service_healthy
+      dagster_webserver:
+        condition: service_started
+
+volumes:
+  mysql_data:
+  dagster_home:

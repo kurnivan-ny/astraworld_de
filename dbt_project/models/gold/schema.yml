@@ -1,0 +1,68 @@
+version: 2
+
+models:
+  # ── dm_sales_by_model ────────────────────────────────────────────────────────
+  - name: dm_sales_by_model
+    description: >
+      Gold – Datamart penjualan bulanan per model dengan segmentasi harga
+      (LOW <250jt, MEDIUM 250-400jt, HIGH >400jt).
+    columns:
+      - name: periode
+        description: "Periode bulan format YYYY-MM"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_match_regex:
+              regex: "^[0-9]{4}-[0-9]{2}$"
+      - name: class
+        description: "Segmentasi harga: LOW / MEDIUM / HIGH"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["LOW", "MEDIUM", "HIGH"]
+      - name: model
+        tests:
+          - not_null
+      - name: unit_terjual
+        description: "Jumlah unit terjual di periode dan model tersebut"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+      - name: total
+        description: "Total nilai penjualan dalam rupiah"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+
+  # ── dm_customer_service ──────────────────────────────────────────────────────
+  - name: dm_customer_service
+    description: >
+      Gold – Laporan prioritas layanan pelanggan tahunan.
+      HIGH >10 servis, MED 5-10, LOW <5.
+    columns:
+      - name: customer_id
+        tests:
+          - not_null
+      - name: periode
+        description: "Tahun servis (YYYY)"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 2000
+              max_value: 2100
+      - name: customer_name
+        tests:
+          - not_null
+      - name: count_service
+        description: "Total tiket servis dalam satu tahun"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+      - name: priority
+        description: "HIGH / MED / LOW berdasarkan count_service"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["HIGH", "MED", "LOW"]

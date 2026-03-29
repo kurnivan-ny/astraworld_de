@@ -1,0 +1,18 @@
+source:
+  type: file
+  conn: LOCAL
+  stream: "{csv_file_path}"
+  options:
+    header: true
+    delimiter: ","
+    null_if: ["", "NULL", "null"]
+
+target:
+  type: db
+  conn: MYSQL_RAW
+  object: "astraworld_dw.customer_addresses_raw"
+  options:
+    mode: merge
+    primary_key: id
+    update_key: created_at
+    column_casing: snake

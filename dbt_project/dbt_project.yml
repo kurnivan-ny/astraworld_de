@@ -1,0 +1,18 @@
+name: astraworld
+version: "1.0.0"
+config-version: 2
+profile: astraworld
+
+model-paths:           ["models"]
+test-paths:            ["tests"]
+macro-paths:           ["macros"]
+target-path:           "target"
+clean-targets:         ["target", "dbt_packages"]
+packages-install-path: "dbt_packages"
+
+models:
+  astraworld:
+    silver:
+      +materialized: incremental
+    gold:
+      +materialized: incremental
