@@ -27,30 +27,26 @@ parsed AS (
             WHEN TRIM(name) REGEXP '^(PT|CV|UD)\\b' THEN 1
             ELSE 0
         END AS is_company,
+        COALESCE(
         CASE
-            -- YYYY-MM-DD  e.g. 1980-11-15
             WHEN dob REGEXP '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
                 THEN STR_TO_DATE(dob, '%Y-%m-%d')
-            -- YYYY/MM/DD  e.g. 1980/11/15
             WHEN dob REGEXP '^[0-9]{4}/[0-9]{2}/[0-9]{2}$'
                 THEN STR_TO_DATE(dob, '%Y/%m/%d')
-            -- DD/MM/YYYY  e.g. 15/11/1980
             WHEN dob REGEXP '^[0-9]{2}/[0-9]{2}/[0-9]{4}$'
                 THEN STR_TO_DATE(dob, '%d/%m/%Y')
-            -- Dash-separated with 4-digit year: disambiguate DD-MM vs MM-DD
             WHEN dob REGEXP '^[0-9]{2}-[0-9]{2}-[0-9]{4}$'
                 THEN CASE
-                    -- Middle segment > 12 → must be day → MM-DD-YYYY
                     WHEN CAST(SUBSTRING(dob, 4, 2) AS UNSIGNED) > 12
                         THEN STR_TO_DATE(dob, '%m-%d-%Y')
-                    -- First segment > 12 → must be day → DD-MM-YYYY
                     WHEN CAST(SUBSTRING(dob, 1, 2) AS UNSIGNED) > 12
                         THEN STR_TO_DATE(dob, '%d-%m-%Y')
-                    -- Both ≤ 12 → ambiguous, default to DD-MM-YYYY (Indonesian convention)
                     ELSE STR_TO_DATE(dob, '%d-%m-%Y')
                 END
             ELSE NULL
-        END AS dob,
+        END,
+        DATE('1900-01-01')
+        ) AS dob,
         created_at_parsed AS created_at
     FROM raw
 )
